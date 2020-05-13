@@ -244,5 +244,6 @@ class ActorCriticTest(absltest.TestCase):
     trainer.run(2)
     self.assertEqual(2, trainer.current_epoch)
 
+
 if __name__ == '__main__':
   absltest.main()

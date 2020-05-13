@@ -36,8 +36,11 @@ from trax.rl import task as rl_task
 class RLTrainer:
   """Abstract class for RL Trainers, presenting the required API."""
 
-  def __init__(self, task: rl_task.RLTask, collect_per_epoch=None,
-               output_dir=None, timestep_to_np=None):
+  def __init__(self, task: rl_task.RLTask,
+               collect_per_epoch=None,
+               only_eval=False,
+               output_dir=None,
+               timestep_to_np=None):
     """Configures the RL Trainer.
 
     Note that subclasses can have many more arguments, which will be configured
@@ -46,6 +49,8 @@ class RLTrainer:
     Args:
       task: RLTask instance, which defines the environment to train on.
       collect_per_epoch: How many new trajectories to collect in each epoch.
+      only_eval: If set to True, then trajectories are collected only for
+        for evaluation purposes, but they are not recorded.
       output_dir: Path telling where to save outputs such as checkpoints.
       timestep_to_np: Timestep-to-numpy function to override in the task.
     """
@@ -54,6 +59,7 @@ class RLTrainer:
     if timestep_to_np is not None:
       self._task.timestep_to_np = timestep_to_np
     self._collect_per_epoch = collect_per_epoch
+    self._only_eval = only_eval
     self._output_dir = output_dir
     self._avg_returns = []
     self._sw = None
@@ -140,7 +146,7 @@ class RLTrainer:
           'RL training took %.2f seconds.' % (time.time() - cur_time))
       cur_time = time.time()
       avg_return = self.task.collect_trajectories(
-          self.policy, self._collect_per_epoch, self._epoch)
+          self.policy, self._collect_per_epoch, self._only_eval, self._epoch)
       self._avg_returns.append(avg_return)
       supervised.trainer_lib.log(
           'Collecting %d episodes took %.2f seconds.'
